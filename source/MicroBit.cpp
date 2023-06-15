@@ -88,7 +88,7 @@ MicroBit::MicroBit() :
        MICROBIT_ID_IO_P20
 #ifdef TARGET_NRF51_CALLIOPE
        ,
-       MICROBIT_ID_IO_P21
+       MICROBIT_ID_IO_P17,MICROBIT_ID_IO_P18,MICROBIT_ID_LOGO
 #endif
     ),
     bleManager(storage),
