@@ -4,7 +4,7 @@
   "description": "A simple to use collection of the most commonly used components in the micro:bit runtime",
   "license": "MIT",
   "dependencies": {
-    "microbit-dal": "calliope-mini/microbit-dal#v2.2.0-rc6-calliope.rc3-iss0.3"
+    "microbit-dal": "calliope-mini/microbit-dal#pxtgc-radio-iss"
   },
   "extraIncludes": [
     "inc"
