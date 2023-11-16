@@ -233,7 +233,7 @@ class MicroBit
       * @param seed The 32-bit value to seed the generator with.
       *
       * @code
-      * uBit.seedRandom(0xBB5EED);
+      * uBit.seedRandom(0xBBC5EED);
       * @endcode
       */
     void seedRandom(uint32_t seed);
@@ -511,7 +511,7 @@ inline void MicroBit::seedRandom()
   * @param seed The 32-bit value to seed the generator with.
   *
   * @code
-  * uBit.seedRandom(0xBB5EED);
+  * uBit.seedRandom(0xBBC5EED);
   * @endcode
   */
 inline void MicroBit::seedRandom(uint32_t seed)

@@ -139,7 +139,26 @@ void MicroBit::init()
     scheduler_init(messageBus);
 
     // Seed our random number generator
-    seedRandom();
+     if(!ble_running())
+     {
+        seedRandom();
+     }
+     else
+     {
+        // Readings from different sensors
+        int16_t accelerometerX = accelerometer.getX();
+        int16_t accelerometerY = accelerometer.getY();
+        int16_t accelerometerZ = accelerometer.getZ();
+        int16_t temperatureValue = thermometer.getTemperature();
+        int16_t microphoneValue = io.MICROPHONE.getAnalogValue();
+
+        // Combine sensor values using XOR
+        uint32_t random_value = accelerometerX ^ accelerometerY ^ accelerometerZ ^ temperatureValue ^ microphoneValue;
+        seedRandom(random_value);
+     }
+
+    
+
 
     // Create an event handler to trap any handlers being created for I2C services.
     // We do this to enable initialisation of those services only when they're used,
