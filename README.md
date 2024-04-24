@@ -1,3 +1,8 @@
+> This is a fork of the original microbit adapted for the [Calliope](http://calliope.cc) board.
+> The master branch tracks the latest changes (board rev. 1.0+), for code covering the 2016 board (rev 0.3 and lower)
+> see the [calliope-mini-2016 branch](../../tree/calliope-mini-2016).
+
+
 # microbit
 
 A collection of the commonly used components of the micro:bit runtime with a

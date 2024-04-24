@@ -21,6 +21,11 @@ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
+====================
+Modifications Copyright (c) 2016 Calliope GbR
+Modifications are provided by DELTA Systems (Georg Sommer) - Thomas Kern
+und Björn Eberhardt GbR by arrangement with Calliope GbR.
 */
 
 #include "MicroBitConfig.h"
@@ -60,7 +65,9 @@ RawSerial* SERIAL_DEBUG = NULL;
   */
 MicroBit::MicroBit() :
     serial(USBTX, USBRX),
+#ifndef TARGET_NRF51_CALLIOPE
 	resetButton(MICROBIT_PIN_BUTTON_RESET),
+#endif
     storage(),
     i2c(I2C_SDA0, I2C_SCL0),
     messageBus(),
@@ -77,18 +84,35 @@ MicroBit::MicroBit() :
        MICROBIT_ID_IO_P6,MICROBIT_ID_IO_P7,MICROBIT_ID_IO_P8,
        MICROBIT_ID_IO_P9,MICROBIT_ID_IO_P10,MICROBIT_ID_IO_P11,
        MICROBIT_ID_IO_P12,MICROBIT_ID_IO_P13,MICROBIT_ID_IO_P14,
-       MICROBIT_ID_IO_P15,MICROBIT_ID_IO_P16,MICROBIT_ID_IO_P19,
-       MICROBIT_ID_IO_P20),
+       MICROBIT_ID_IO_P15,
+// #ifdef TARGET_NRF51_CALLIOPE
+        MICROBIT_ID_IO_A1_RX,
+        MICROBIT_ID_IO_A1_TX,
+        MICROBIT_ID_IO_A0_SDA,
+        MICROBIT_ID_IO_A0_SCL,
+        MICROBIT_ID_LOGO
+// #else  
+//        MICROBIT_ID_IO_P15,
+//        MICROBIT_ID_IO_P16,
+//        MICROBIT_ID_IO_P19,
+//        MICROBIT_ID_IO_P20
+// #endif
+    ),
     bleManager(storage),
     radio(),
-    ble(NULL)
+    ble(NULL),
+    rgb(),
+    soundmotor()
 {
     // Clear our status
     status = 0;
 
+// there is no soft reset pin available on the Callipo mini, it is resetted via the KL26z SWD
+#ifndef TARGET_NRF51_CALLIOPE
     // Bring up soft reset functionality as soon as possible.
     resetButton.mode(PullUp);
     resetButton.fall(this, &MicroBit::reset);
+#endif
 }
 
 /**

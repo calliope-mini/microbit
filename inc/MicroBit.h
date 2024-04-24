@@ -4,6 +4,10 @@ The MIT License (MIT)
 Copyright (c) 2016 British Broadcasting Corporation.
 This software is provided by Lancaster University by arrangement with the BBC.
 
+Modifications Copyright (c) 2016 Calliope GbR
+Modifications are provided by DELTA Systems (Georg Sommer) - Thomas Kern
+und Björn Eberhardt GbR by arrangement with Calliope GbR.
+
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
 to deal in the Software without restriction, including without limitation
@@ -65,6 +69,8 @@ DEALINGS IN THE SOFTWARE.
 #include "MicroBitRadio.h"
 #include "MicroBitStorage.h"
 
+#include "CalliopeRGB.h"
+#include "CalliopeSoundMotor.h"
 // MicroBit::flags values
 #define MICROBIT_INITIALIZED                    0x01
 
@@ -94,8 +100,10 @@ class MicroBit
     // Serial Interface
     MicroBitSerial              serial;
 
+#ifndef TARGET_NRF51_CALLIOPE
 	// Reset Button
 	InterruptIn     		    resetButton;
+#endif
 
     // Persistent key value store
     MicroBitStorage             storage;
@@ -124,6 +132,10 @@ class MicroBit
     MicroBitRadio               radio;
     BLEDevice                   *ble;
 
+	//Calliope MINI specific devices
+	CalliopeRGB 				rgb;
+	CalliopeSoundMotor 			soundmotor;
+	
     /**
       * Constructor.
       *
