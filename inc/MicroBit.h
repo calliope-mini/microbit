@@ -65,6 +65,8 @@ DEALINGS IN THE SOFTWARE.
 #include "MicroBitRadio.h"
 #include "MicroBitStorage.h"
 
+#include "CalliopeRGB.h"
+
 // MicroBit::flags values
 #define MICROBIT_INITIALIZED                    0x01
 
@@ -123,6 +125,9 @@ class MicroBit
 	MicroBitBLEManager		    bleManager;
     MicroBitRadio               radio;
     BLEDevice                   *ble;
+
+    // Calliope mini RGB LED
+    CalliopeRGB                 rgb;
 
     /**
       * Constructor.

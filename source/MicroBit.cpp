@@ -60,7 +60,7 @@ RawSerial* SERIAL_DEBUG = NULL;
   */
 MicroBit::MicroBit() :
     serial(USBTX, USBRX),
-	resetButton(MICROBIT_PIN_BUTTON_RESET),
+	resetButton(MICROBIT_PIN_BUTTON_RESET), // Calliope: kept for object layout only; .mode()/.fall() disabled below
     storage(),
     i2c(I2C_SDA0, I2C_SCL0),
     messageBus(),
@@ -81,14 +81,15 @@ MicroBit::MicroBit() :
        MICROBIT_ID_IO_P19,MICROBIT_ID_IO_P20),
     bleManager(storage),
     radio(),
-    ble(NULL)
+    ble(NULL),
+    rgb()
 {
     // Clear our status
     status = 0;
 
-    // Bring up soft reset functionality as soon as possible.
-    resetButton.mode(PullUp);
-    resetButton.fall(this, &MicroBit::reset);
+    // P0_19 is I2C SCL on Calliope mini - do not register fall interrupt
+    // resetButton.mode(PullUp);
+    // resetButton.fall(this, &MicroBit::reset);
 }
 
 /**
