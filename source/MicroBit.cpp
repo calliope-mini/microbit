@@ -138,7 +138,7 @@ void MicroBit::init()
     while ((buttonA.isPressed() && buttonB.isPressed() && i<25) || RebootMode != NULL || flashIncomplete != NULL)
     {
         display.image.setPixelValue(x,y,255);
-        sleep(50);
+        sleep(30);
         i++; x++;
 
         // Gradually fill screen
