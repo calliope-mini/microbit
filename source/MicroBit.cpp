@@ -62,7 +62,7 @@ MicroBit::MicroBit() :
     serial(USBTX, USBRX),
 	resetButton(MICROBIT_PIN_BUTTON_RESET), // Calliope: kept for object layout only; .mode()/.fall() disabled below
     storage(),
-    i2c(I2C_SDA0, I2C_SCL0),
+    i2c(P0_20, P0_19),  // Calliope mini: SDA=P0_20, SCL=P0_19 (not I2C_SCL0 which is P0_0 on bbc-microbit-classic-gcc target)
     messageBus(),
     display(),
     buttonA(MICROBIT_PIN_BUTTON_A, MICROBIT_ID_BUTTON_A),
