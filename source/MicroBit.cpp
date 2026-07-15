@@ -180,12 +180,41 @@ void MicroBit::init()
 #endif
 #endif
 
-#if CONFIG_ENABLED(MICROBIT_BLE_ENABLED)
-    // Start the BLE stack, if it isn't already running.
-    if (!ble)
+    // 32KB RAM devices have an extra 16KB of physical RAM above
+    // MICROBIT_SRAM_END that the linker's memory map (fixed to 16KB, shared
+    // with 16KB devices) never places anything in. Reclaim it as a third
+    // heap region when detected at runtime - this address range is
+    // physically absent on 16KB chips, so it must stay gated on the runtime
+    // check rather than being registered unconditionally.
+    //
+    // This extra range lives in nRF51 RAM blocks 2-3, which are a separate
+    // power domain from blocks 0-1 (controlled via POWER->RAMONB, not
+    // POWER->RAMON) and are NOT powered on by this project's GCC startup code
+    // (TOOLCHAIN_GCC_ARM/startup_NRF51822.S only sets RAMON - unlike the
+    // ARMCC 32K startup variant, which sets both RAMON and RAMONB). Without
+    // this, reads/writes to that region are into unpowered RAM: undefined,
+    // and not something that reliably hard-faults - it surfaces as silent
+    // heap corruption a few allocations later instead of an immediate,
+    // obvious failure at boot.
+    if (microbit_ram_size() > 16*1024)
     {
-        bleManager.init(getName(), getSerial(), messageBus, false);
-        ble = bleManager.ble;
+        NRF_POWER->RAMONB |= (POWER_RAMONB_ONRAM2_RAM2On << POWER_RAMONB_ONRAM2_Pos)
+                            | (POWER_RAMONB_ONRAM3_RAM3On << POWER_RAMONB_ONRAM3_Pos);
+        microbit_create_heap(MICROBIT_SRAM_END, MICROBIT_SRAM_END + 16*1024);
+    }
+
+#if CONFIG_ENABLED(MICROBIT_BLE_ENABLED)
+    // 16KB RAM devices are too tight on memory to reliably run BLE alongside
+    // user code, so ignore MICROBIT_BLE_ENABLED on them unless explicitly
+    // overridden via MICROBIT_BLE_FORCE_ENABLE_16KB.
+    if (microbit_ram_size() > 16*1024 || CONFIG_ENABLED(MICROBIT_BLE_FORCE_ENABLE_16KB))
+    {
+        // Start the BLE stack, if it isn't already running.
+        if (!ble)
+        {
+            bleManager.init(getName(), getSerial(), messageBus, false);
+            ble = bleManager.ble;
+        }
     }
 #endif
 }
