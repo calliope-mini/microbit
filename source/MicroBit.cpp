@@ -171,31 +171,39 @@ void MicroBit::init()
     }
 #endif
 
-    // Attempt to bring up a second heap region, using unused memory normally reserved for Soft Device.
+#if CONFIG_ENABLED(MICROBIT_BLE_ENABLED)
+    // Will the SoftDevice run this boot? Decided once, reused for the heap
+    // layout and the BLE bring-up below. True if pairing/DFU already started it
+    // (ble != NULL), or a >16KB non-simulated device, or a forced 16KB device.
+    bool bleWillRun = (ble != NULL)
+        || ((microbit_ram_size() > 16*1024 && !CONFIG_ENABLED(MICROBIT_SIMULATE_MINI1_ON_MINI2))
+            || CONFIG_ENABLED(MICROBIT_BLE_FORCE_ENABLE_16KB));
+#endif
+
+    // Reclaim the RAM normally reserved for the Soft Device as heap. If it will
+    // run, only the ~1KB slack above its GATT table is free; if not, the whole
+    // ~8KB region is (the SD never touches it when disabled). The latter relies
+    // on BLE not starting later this boot - safe unless user code calls
+    // bleManager.init() manually (pairing/DFU is A+B+reset only, handled above).
 #if CONFIG_ENABLED(MICROBIT_HEAP_REUSE_SD)
 #if CONFIG_ENABLED(MICROBIT_BLE_ENABLED)
-    microbit_create_heap(MICROBIT_SD_GATT_TABLE_START + MICROBIT_SD_GATT_TABLE_SIZE, MICROBIT_SD_LIMIT);
+    if (bleWillRun)
+        microbit_create_heap(MICROBIT_SD_GATT_TABLE_START + MICROBIT_SD_GATT_TABLE_SIZE, MICROBIT_SD_LIMIT);
+    else
+        microbit_create_heap(MICROBIT_SRAM_BASE, MICROBIT_SD_LIMIT);
 #else
     microbit_create_heap(MICROBIT_SRAM_BASE, MICROBIT_SD_LIMIT);
 #endif
 #endif
 
-    // 32KB RAM devices have an extra 16KB of physical RAM above
-    // MICROBIT_SRAM_END that the linker's memory map (fixed to 16KB, shared
-    // with 16KB devices) never places anything in. Reclaim it as a third
-    // heap region when detected at runtime - this address range is
-    // physically absent on 16KB chips, so it must stay gated on the runtime
-    // check rather than being registered unconditionally.
-    //
-    // This extra range lives in nRF51 RAM blocks 2-3, which are a separate
-    // power domain from blocks 0-1 (controlled via POWER->RAMONB, not
-    // POWER->RAMON) and are NOT powered on by this project's GCC startup code
-    // (TOOLCHAIN_GCC_ARM/startup_NRF51822.S only sets RAMON - unlike the
-    // ARMCC 32K startup variant, which sets both RAMON and RAMONB). Without
-    // this, reads/writes to that region are into unpowered RAM: undefined,
-    // and not something that reliably hard-faults - it surfaces as silent
-    // heap corruption a few allocations later instead of an immediate,
-    // obvious failure at boot.
+    // Reclaim the extra 16KB above MICROBIT_SRAM_END that 32KB devices have but
+    // the 16KB linker map never uses. Gated on the runtime size check since it
+    // is physically absent on 16KB chips. This RAM (nRF51 blocks 2-3) is a
+    // separate power domain, powered via POWER->RAMONB - the GCC startup only
+    // sets RAMON, so it must be enabled here or accesses hit unpowered RAM
+    // (undefined, surfaces as silent heap corruption, not a clean fault).
+    // MICROBIT_SIMULATE_MINI1_ON_MINI2 skips this to emulate a mini v1.
+#if !CONFIG_ENABLED(MICROBIT_SIMULATE_MINI1_ON_MINI2)
     if (microbit_ram_size() > 16*1024)
     {
         NRF_POWER->RAMONB |= (POWER_RAMONB_ONRAM2_RAM2On << POWER_RAMONB_ONRAM2_Pos)
@@ -203,22 +211,18 @@ void MicroBit::init()
         microbit_create_heap(MICROBIT_SRAM_END, MICROBIT_SRAM_END + 16*1024);
     }
 
+
+#endif
 #if CONFIG_ENABLED(MICROBIT_BLE_ENABLED)
-    // 16KB RAM devices are too tight on memory to reliably run BLE alongside
-    // user code, so ignore MICROBIT_BLE_ENABLED on them unless explicitly
-    // overridden via MICROBIT_BLE_FORCE_ENABLE_16KB.
-    if (microbit_ram_size() > 16*1024 || CONFIG_ENABLED(MICROBIT_BLE_FORCE_ENABLE_16KB))
+    // Start BLE only when it should run this boot (see bleWillRun); 16KB and
+    // simulated-v1 devices stay off unless MICROBIT_BLE_FORCE_ENABLE_16KB.
+    if (bleWillRun && !ble)
     {
-        // Start the BLE stack, if it isn't already running.
-        if (!ble)
-        {
-            bleManager.init(getName(), getSerial(), messageBus, false);
-            ble = bleManager.ble;
-        }
+        bleManager.init(getName(), getSerial(), messageBus, false);
+        ble = bleManager.ble;
     }
 #endif
 }
-
 /**
   * A listener to perform actions as a result of Message Bus reflection.
   *
