@@ -177,7 +177,7 @@ void MicroBit::init()
     // (ble != NULL), or a >16KB non-simulated device, or a forced 16KB device.
     bool bleWillRun = (ble != NULL)
         || ((microbit_ram_size() > 16*1024 && !CONFIG_ENABLED(MICROBIT_SIMULATE_MINI1_ON_MINI2))
-            || CONFIG_ENABLED(MICROBIT_BLE_FORCE_ENABLE_16KB));
+            || CONFIG_ENABLED(MICROBIT_BLE_FORCE_ENABLED_16KB));
 #endif
 
     // Reclaim the RAM normally reserved for the Soft Device as heap. If it will
@@ -215,7 +215,7 @@ void MicroBit::init()
 #endif
 #if CONFIG_ENABLED(MICROBIT_BLE_ENABLED)
     // Start BLE only when it should run this boot (see bleWillRun); 16KB and
-    // simulated-v1 devices stay off unless MICROBIT_BLE_FORCE_ENABLE_16KB.
+    // simulated-v1 devices stay off unless MICROBIT_BLE_FORCE_ENABLED_16KB.
     if (bleWillRun && !ble)
     {
         bleManager.init(getName(), getSerial(), messageBus, false);
