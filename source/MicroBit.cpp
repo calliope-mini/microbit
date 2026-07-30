@@ -215,7 +215,7 @@ void MicroBit::init()
 #endif
 #if CONFIG_ENABLED(MICROBIT_BLE_ENABLED)
     // Start BLE only when it should run this boot (see bleWillRun); 16KB and
-    // simulated-v1 devices stay off unless MICROBIT_BLE_FORCE_ENABLE_16KB.
+    // simulated-v1 devices stay off unless MICROBIT_BLE_FORCE_ENABLED_16KB.
     if (bleWillRun && !ble)
     {
         bleManager.init(getName(), getSerial(), messageBus, false);
